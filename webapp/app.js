@@ -1,5 +1,5 @@
 /*
- * app.js Express server with generic routing
+ * app.js Express server with  routing
 */
 
 /*jslint         browser : true, continue : true,
@@ -16,9 +16,10 @@
 var
   http     = require( 'http' ),
   express  = require( 'express' ),
-
+  routes   = require( './routes'),
   app      = express(),
   server   = http.createServer( app );
+
 //  ------------------------ END MODULE SCOPE VARIABLES --------------
 
 //  ------------------------ BEGIN SERVER CONFIGURATION --------------
@@ -41,48 +42,10 @@ app.configure( 'production', function () {
   app.use( express.errorHandler() );
 });
 
-// all configuraton below are for routes
-app.get( '/', function ( request, response ) {
-  response.redirect( '/spa.html' );
-});
-
-app.all( '/:obj_type/*?', function ( request, response, next ) {
-  response.contentType( 'json' );
-  next();
-});
-
-app.get( '/:obj_type/list', function ( request, response ) {
-  response.send({ title: request.params.obj_type +' list'});
-});
-
-app.post( '/:obj_type/create', function ( request, response ) {
-  response.send({ title: request.params.obj_type + ' created'});
-});
-
-app.get( '/:obj_type/read/:id', function ( request, response ) {
-  response.send({
-    title: request.params.obj_type + ' with id '
-    + request.params.id + ' found'
-  });
-});
-
-app.get( '/:obj_type/update/:id', function ( request, response ) {
-  response.send({
-    title: request.params.obj_type + ' with id '
-    + request.params.id + ' found'
-  });
-});
-
-app.get( '/:obj_type/delete/:id', function ( request, response ) {
-  response.send({
-    title: request.params.obj_type + ' with id '
-    + request.params.id + ' found'
-  });
-});
-
+routes.configRoutes( app, server );
 //  ------------------------ END SERVER CONFIGURATION -----------------
 
-
-
+//  ------------------------ BEGIN START SERVER -----------------------
 server.listen( 3000 );
 console.log( 'Exp Listen on port %d in %s mode', server.address().port, app.settings.env );
+//  ------------------------ END START SERVER   -----------------------
