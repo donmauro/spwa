@@ -13,10 +13,9 @@
  *          a non-array variable as the second argument
  *          to a subscribed function (the first argument
  *          is always the event object).
- *  0.1.7-10, 0.2.0
- *        - documentation changes
- *  1.0.2 - cleaned-up logic, bumped version
- *  1.1.2 - added keywords
+ *  0.1.7
+ *  0.1.8
+ *  0.1.9 - documentation changes
  *
 */
 
@@ -26,11 +25,11 @@
   regexp : true, sloppy  : true, vars     : false,
   white  : true
 */
-/*global jQuery*/
+/*global jQuery */
 
 (function ( $ ) {
   'use strict';
-  $.gevent = (function () {
+  $.gevent = ( function () {
     //---------------- BEGIN MODULE SCOPE VARIABLES --------------
     var
       subscribeEvent, publishEvent, unsubscribeEvent,
@@ -50,37 +49,25 @@
     //   which a subscribed handler will receive after the event object.
     // Arguments (positional)
     //   * 0 ( event_name )  - The global event name
-    //   * 1 ( data )        - Optional data to be passed as argument(s)
+    //   * 2 ( data )        - Optional data to be passed as argument(s)
     //                         to subscribed functions after the event
     //                         object. Provide an array for multiple
     //                         arguments.
     // Throws   : none
     // Returns  : none
     //
-    publishEvent = function () {
-      var arg_list = [],
-        arg_count, event_name,
-        event_obj, data, data_list;
-  
-      arg_list  = arg_list.slice.call( arguments, 0 );
-      arg_count = arg_list.length;
-  
-      if ( arg_count === 0 ) { return false; }
-  
-      event_name = arg_list.shift();
-      event_obj  = $customSubMap[ event_name ];
-  
-      if ( ! event_obj ) { return false; }
-  
-      if ( arg_count > 1 ) {
-        data      = arg_list.shift();
-        data_list = $.isArray( data ) ? data : [ data ];
+    publishEvent = function ( event_name, data ) {
+      var data_list;
+
+      if ( ! $customSubMap[ event_name ] ){ return false; }
+
+      if ( data ){
+        data_list = Array.isArray( data ) ? data : [ data ];
+        $customSubMap[ event_name ].trigger( event_name, data_list );
+        return true;
       }
-      else {
-        data_list = [];
-      }
-  
-      event_obj.trigger( event_name, data_list );
+
+      $customSubMap[ event_name ].trigger( event_name );
       return true;
     };
     // END public method /publishEvent/
@@ -104,12 +91,12 @@
     subscribeEvent = function ( $collection, event_name, fn ) {
       $collection.on( event_name, fn );
 
-      if ( $customSubMap[ event_name ] ) {
-        $customSubMap[ event_name ]
-          = $customSubMap[ event_name ].add( $collection );
+      if ( ! $customSubMap[ event_name ] ) {
+        $customSubMap[ event_name ] = $collection;
       }
       else {
-        $customSubMap[ event_name ] = $collection;
+        $customSubMap[ event_name ]
+          = $customSubMap[ event_name ].add( $collection );
       }
     };
     // END public method /subscribeEvent/

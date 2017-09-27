@@ -1,33 +1,35 @@
 /*
- * jQuery plugin to manage the URI anchor component ("hash fragmant")
+ * Jquery plugin for state managment through the URI anchor (hash fragment)
  *
- * Copyright (c) 2013-2015 Michael S. Mikowski
+ * Copyright (c) 2013 Michael S. Mikowski
  * (mike[dot]mikowski[at]gmail[dotcom])
  *
  * Dual licensed under the MIT or GPL Version 2
  * http://jquery.org/license
  *
  * Versions
- *  1.1.1-1.1.3 - Initial jQuery plugin site releases
- *  1.2.1-1.3.3 - Updated documentation, minor bug fixes
+ *  1.1.1-3 - Initial jQuery plugin site releases
+ *
 */
+
 /*jslint         browser : true, continue : true,
   devel  : true, indent  : 2,    maxerr   : 50,
   newcap : true, nomen   : true, plusplus : true,
   regexp : true, sloppy  : true, vars     : false,
   white  : true
 */
+
 /*global jQuery */
 
 (function ($) {
-  $.uriAnchor = (function () {
+  $.uriAnchor = ( function ( ) {
     //---------------- BEGIN MODULE SCOPE VARIABLES --------------
     var
       configMap = {
-        clean0_regex     : /^[#!]*/,
-        clean1_regex     : /\?[^?]*$/,
-        settable_map_key : { schema_map : true },
-        schema_map       : null
+        regex_anchor_clean1 : /^[#!]*/,
+        regex_anchor_clean2 : /\?[^?]*$/,
+        settable_map_key    : { schema_map : true },
+        schema_map          : null
       },
 
       getErrorReject,   getVarType,       getCleanAnchorString,
@@ -55,11 +57,11 @@
 
     // Begin internal utility to clean bookmark
     getCleanAnchorString = function () {
-      return String( document.location.href.split('#')[1] || '' )
+      return String( document.location.hash )
         // remove any leading pounds or bangs
-        .replace( configMap.clean0_regex , '' )
+        .replace( configMap.regex_anchor_clean1 , '' )
         // snip off after question-mark ( a ClickStreet bug )
-        .replace( configMap.clean1_regex , '' )
+        .replace( configMap.regex_anchor_clean2 , '' )
         ;
     };
     // End internal utility to clean bookmark
@@ -112,6 +114,7 @@
         schema_map_val, schema_map_dep, schema_map_dep_val,
         key_name, key_value, class_name, output_kv_string,
         sub_key_name, dep_map, dep_key_name, dep_key_value,
+        dep_class_name,
 
         dep_kv_array
         ;
@@ -194,6 +197,7 @@
             for ( dep_key_name in dep_map  ) {
               if ( dep_map.hasOwnProperty( dep_key_name ) ) {
                 dep_key_value = dep_map[dep_key_name];
+                dep_class_name = getVarType( dep_key_value  );
 
                 if ( schema_map_dep  ) {
                   schema_map_dep_val = schema_map_dep[dep_key_name];
@@ -492,8 +496,8 @@
           else {
             error         = new Error();
             error.name    = 'Bad Input';
-            error.message = 'Setting config key |' + key_name
-              + '| is not supported';
+            error.message = 'Setting config key |'
+              + key_name + '| is not supported';
             throw error;
           }
         }
@@ -505,7 +509,7 @@
     return {
       configModule     : configModule,
       getVarType       : getVarType,
-      makeAnchorMap    : makeAnchorMap,
+      makeAnchorMap   : makeAnchorMap,
       makeAnchorString : makeAnchorString,
       setAnchor        : setAnchor
     };

@@ -1,3 +1,4 @@
+
 /*
 
  Software License Agreement (BSD License)
@@ -33,26 +34,19 @@ var TAFFY, exports, T;
     version,      TC,           idpad,  cmax,
     API,          protectJSON,  each,   eachin,
     isIndexable,  returnFilter, runFilters,
-    numcharsplit, orderByCol,   run,    intersection,
-    filter,       makeCid,      safeForJson,
-    isRegexp, sortArgs
+    numcharsplit, orderByCol,   run
     ;
-    
-    
+
+
   if ( ! TAFFY ){
     // TC = Counter for Taffy DBs on page, used for unique IDs
     // cmax = size of charnumarray conversion cache
     // idpad = zeros to pad record IDs with
-    version = '2.7';
+    version = '2.6.2'; // proposed mmikowski 2012-08-06
     TC      = 1;
     idpad   = '000000';
     cmax    = 1000;
     API     = {};
-
-    sortArgs = function(args) {
-      var v = Array.prototype.slice.call(args);
-      return v.sort();
-    }
 
     protectJSON = function ( t ) {
       // ****************************************
@@ -68,44 +62,7 @@ var TAFFY, exports, T;
         return JSON.parse( t );
       }
     };
-    
-    // gracefully stolen from underscore.js
-    intersection = function(array1, array2) {
-        return filter(array1, function(item) {
-          return array2.indexOf(item) >= 0;
-        });
-    };
 
-    // gracefully stolen from underscore.js
-    filter = function(obj, iterator, context) {
-        var results = [];
-        if (obj == null) return results;
-        if (Array.prototype.filter && obj.filter === Array.prototype.filter) return obj.filter(iterator, context);
-        each(obj, function(value, index, list) {
-          if (iterator.call(context, value, index, list)) results[results.length] = value;
-        });
-        return results;
-    };
-    
-    isRegexp = function(aObj) {
-        return Object.prototype.toString.call(aObj)==='[object RegExp]';
-    }
-    
-    safeForJson = function(aObj) {
-        var myResult = T.isArray(aObj) ? [] : T.isObject(aObj) ? {} : null;
-        if(aObj===null) return aObj;
-        for(var i in aObj) {
-            myResult[i]  = isRegexp(aObj[i]) ? aObj[i].toString() : T.isArray(aObj[i]) || T.isObject(aObj[i]) ? safeForJson(aObj[i]) : aObj[i];
-        }
-        return myResult;
-    }
-    
-    makeCid = function(aContext) {
-        var myCid = JSON.stringify(aContext);
-        if(myCid.match(/regex/)===null) return myCid;
-        return JSON.stringify(safeForJson(aContext));
-    }
-    
     each = function ( a, fun, u ) {
       var r, i, x, y;
       // ****************************************
@@ -168,7 +125,7 @@ var TAFFY, exports, T;
       // *
       // ****************************************  
       API[m] = function () {
-        return f.apply( this, sortArgs(arguments) );
+        return f.apply( this, arguments );
       };
     };
 
@@ -325,10 +282,7 @@ var TAFFY, exports, T;
                   r
                   ;
 
-                if (typeof mvalue === 'undefined') {
-                  return false;
-                }
-                
+
                 if ( (s.indexOf( '!' ) === 0) && s !== bangeq &&
                   s !== bangeqeq )
                 {
@@ -363,8 +317,7 @@ var TAFFY, exports, T;
                     ? mvalue.toLowerCase() === mtest.toLowerCase()
                       : mvalue === mtest) : (s === 'has')
                   ? (T.has( mvalue, mtest )) : (s === 'hasall')
-                  ? (T.hasAll( mvalue, mtest )) : (s === 'contains')
-                  ? (TAFFY.isArray(mvalue) && mvalue.indexOf(mtest) > -1) : (
+                  ? (T.hasAll( mvalue, mtest )) : (
                     s.indexOf( 'is' ) === -1
                       && !TAFFY.isNull( mvalue )
                       && !TAFFY.isUndefined( mvalue )
@@ -638,7 +591,7 @@ var TAFFY, exports, T;
       });
       nc.q = nq;
       // Hadnle passing of ___ID or a record on lookup.
-      each( sortArgs(arguments), function ( f ) {
+      each( arguments, function ( f ) {
         nc.q.push( returnFilter( f ) );
         nc.filterRaw.push( f );
       });
@@ -724,7 +677,7 @@ var TAFFY, exports, T;
       // *
       // * Takes: a object and passes it off DBI update method for all matched records
       // **************************************** 
-      var runEvent = true, o = {}, args = sortArgs(arguments), that;
+      var runEvent = true, o = {}, args = arguments, that;
       if ( TAFFY.isString( arg0 ) &&
         (arguments.length === 2 || arguments.length === 3) )
       {
@@ -853,9 +806,9 @@ var TAFFY, exports, T;
       // **************************************** 
       var total = 0, that = this;
       run.call( that );
-      each( sortArgs(arguments), function ( c ) {
+      each( arguments, function ( c ) {
         each( that.context().results, function ( r ) {
-          total = total + (r[c] || 0);
+          total = total + r[c];
         });
       });
       return total;
@@ -984,7 +937,7 @@ var TAFFY, exports, T;
         fnMain = function ( table ) {
           var
             right_table, i,
-            arg_list = sortArgs(arguments),
+            arg_list = arguments,
             arg_length = arg_list.length,
             result_list = []
             ;
@@ -1058,7 +1011,7 @@ var TAFFY, exports, T;
       // * Note if more than one column is given an array of arrays is returned
       // **************************************** 
 
-      var ra = [], args = sortArgs(arguments);
+      var ra = [], args = arguments;
       run.call( this );
       if ( arguments.length === 1 ){
 
@@ -1085,7 +1038,7 @@ var TAFFY, exports, T;
       // * Returns: array of values
       // * Note if more than one column is given an array of arrays is returned
       // **************************************** 
-      var ra = [], args = sortArgs(arguments);
+      var ra = [], args = arguments;
       run.call( this );
       if ( arguments.length === 1 ){
 
@@ -1450,7 +1403,7 @@ var TAFFY, exports, T;
               }
             });
             if ( cid === '' ){
-              cid = makeCid( T.mergeObj( context,
+              cid = JSON.stringify( T.mergeObj( context,
                 {q : false, run : false, sort : false} ) );
             }
           }
@@ -1605,7 +1558,7 @@ var TAFFY, exports, T;
         // *
         // * Call the query method to setup a new query
         // **************************************** 
-        each( sortArgs(arguments), function ( f ) {
+        each( arguments, function ( f ) {
 
           if ( isIndexable( f ) ){
             context.index.push( f );
@@ -1780,7 +1733,7 @@ var TAFFY, exports, T;
     // ****************************************
     TAFFY.has = function ( var1, var2 ) {
 
-      var re = false, n;
+      var re = true, n;
 
       if ( (var1.TAFFY) ){
         re = var1( var2 );
@@ -1848,7 +1801,6 @@ var TAFFY, exports, T;
               });
             }
             else if ( T.isString( var2 ) || T.isNumber( var2 ) ){
-             re = false;
               for ( n = 0; n < var1.length; n++ ){
                 re = T.has( var1[n], var2 );
                 if ( re ){

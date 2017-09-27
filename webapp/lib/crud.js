@@ -80,7 +80,9 @@ constructObj = function ( obj_type, obj_map, callback ) {
           if (err)  { throw err; }
           db.collection( obj_type )
             .insertOne( obj_map, function( inner_error, result_map ) {
-              callback( result_map );
+              console.log( 'crud checkSchema');
+              console.log( result_map );
+              callback( result_map.ops );
               db.close();
               });
         });
